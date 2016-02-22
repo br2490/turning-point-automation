@@ -1,0 +1,3 @@
+[submodule "SikuliX-2014"]
+	path = SikuliX-2014
+	url = git@github.com:RaiMan/SikuliX-2014.git
