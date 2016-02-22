@@ -70,51 +70,60 @@
 <h2>TurningPointAutomation.sikuli</h2> <a href="TurningPointAutomation.zip">(Download this script)</a>
 </div>
 <pre class="sikuli-code">
-<span class="cmt">## LETS DEBUG THIS SHIT!</span>
-Debug.on(<span class="dig">2</span>)
-<span class="cmt"># Settings.ObserveScanRate = 0.1</span>
+Debug.on(<span class="dig">3</span>)
+<span class="cmt"># Settings.ObserveScanRate = 0.1
+</span>
+<span class="cmt">## configure our patterns.
+</span><span class="cmt"># STEP 0, we need to open polling.
+</span>poll_closed_no_response = Pattern(<img src="poll_closed_no_response.png" />).exact()
+poll_closed_no_response_old = Pattern(<img src="poll_closed_no_response_old.png" />).exact()
+poll_closed_no_response_zoom = Pattern(<img src="poll_closed_no_response_zoom.png" />).exact()
+<span class="cmt"># STEP 2, we need to wait for a response.
+</span>poll_opened_no_response = Pattern(<img src="poll_open_no_response.png" />).exact()
+poll_open_no_response_old = Pattern(<img src="poll_open_no_response_old.png" />).exact()
+poll_open_no_response_zoom = Pattern(<img src="poll_open_no_response_zoom.png" />).exact()
+<span class="cmt"># STEP 3, we have a response, close polling.
+</span>poll_opened_has_response = Pattern(<img src="poll_opened_has_response.png" />).exact()
+poll_opened_has_response_old = Pattern(<img src="poll_opened_has_response_old.png" />).exact()
+poll_opened_has_response_zoom = Pattern(<img src="poll_opened_has_response_zoom.png" />).exact()
+<span class="cmt"># STEP 4 -&gt; 1, saved response.
+</span>poll_closed_has_response = Pattern(<img src="poll_closed_has_response.png" />).exact()
+poll_closed_has_response_old = Pattern(<img src="poll_closed_has_response_old.png" />).exact()
+poll_closed_has_response_zoom = Pattern(<img src="poll_closed_has_response_zoom.png" />).exact()
 
-<span class="cmt">## configure our patterns.</span>
-poll_closed_no_response = Pattern(<img src="poll_closed_no_response.png" />).exact() <span class="cmt"># STEP 0, we need to open polling.</span>
-poll_opened_no_response = Pattern(<img src="poll_open_no_response.png" />).exact() <span class="cmt"># STEP 2, we need to wait for a response.</span>
-poll_opened_has_response = Pattern(<img src="poll_opened_has_response.png" />).exact() <span class="cmt"># STEP 3, we have a response, close polling.</span>
-poll_closed_has_response = Pattern(<img src="poll_closed_has_response.png" />).exact() <span class="cmt"># STEP 4 -&gt; 1, saved response.</span>
+<span class="cmt">## This hotkey will both OPEN and CLOSE polling on Mac OSx.
+</span><span class="kw">def</span> turning_point_hotkey():
+    <span class="skw">type</span>(<span class="str">"9"</span>, Key.ALT + Key.CMD)
 
+<span class="cmt">## This will move PowerPoint forward one slide and trigger polling to reopen.
+</span><span class="kw">def</span> next_slide_and_poll():
+    <span class="kw">print</span>(<span class="str">"next slide"</span>)
 
-<span class="kw">def</span> weWatchAndWait(trigger):
-    <span class="kw">print</span>(trigger)
+<span class="cmt">## First let's find the TurningPoint polling toolbar. This MATCH is saved as our region.
+</span>region = <span class="skw">wait</span>(poll_closed_no_response_zoom, FOREVER)
+<span class="cmt"># Increase the speed at which we poll the region for changes. Where scanRate(n) is equal to queries per second.
+</span>region.setWaitScanRate(<span class="dig">20</span>)
 
-<span class="kw">def</span> open_polling(trigger):
-    <span class="kw">print</span>(trigger)
+<span class="cmt">## Open polling and wait for participant.
+</span>turning_point_hotkey()
 
-<span class="kw">def</span> do_nothing(trigger):
-    <span class="kw">print</span>(trigger)
+<span class="cmt"># if exists(poll_closed_no_response_old, 10):
+</span><span class="cmt">#     turning_point_hotkey()
+</span><span class="cmt">#     wait(1)
+</span>
+<span class="cmt"># This is a SANITY check ~ we should se that polling is opened and waiting for input.
+</span>region = region.<span class="skw">wait</span>(poll_open_no_response_zoom, <span class="dig">10</span>)
+<span class="kw">print</span>(<span class="str">"Waiting for input..."</span>)
 
-<span class="kw">def</span> close_polling(trigger):
-    <span class="kw">print</span>(trigger)
+<span class="cmt"># The participant has responded, wait, then close polling.
+</span>region = region.<span class="skw">wait</span>(poll_opened_has_response_zoom, FOREVER)
+<span class="kw">print</span>(<span class="str">"Participant has 1 second to change their answer"</span>)
+<span class="skw">sleep</span>(<span class="dig">10</span>) <span class="cmt"># give the participant opportunity to change their response.</span>
+<span class="kw">print</span>(<span class="str">"Participant no longer has time to change their answer."</span>)
+turning_point_hotkey()
 
-
-<span class="kw">def</span> next_slide_and_poll(trigger):
-    <span class="kw">print</span>(trigger)
-
-<span class="kw">if</span> exists(poll_closed_no_response, FOREVER):
-    <span class="kw">print</span>(<span class="str">"Ready"</span>)
-<span class="kw">else</span>:
-    <span class="kw">print</span>(<span class="str">"Not Ready"</span>)
-
-onAppear(poll_closed_no_response, open_polling) <span class="cmt"># open polling</span>
-
-onAppear(poll_opened_no_response, do_nothing) <span class="cmt"># just wait...</span>
-
-onAppear(poll_opened_has_response, close_polling) <span class="cmt"># we've got a response, close polling</span>
-
-onAppear(poll_closed_has_response, next_slide_and_poll) <span class="cmt"># we have 1 response and polling is closed, next slide</span>
-
-observe(<span class="dig">10</span>)
-
-<span class="cmt"># test = exists(poll_closed_has_response, FOREVER)</span>
-<span class="cmt"># print(test)</span>
-
+<span class="kw">if</span> region.<span class="skw">wait</span>(poll_closed_has_response_zoom):
+    <span class="kw">print</span>(<span class="str">"WE HAVE A RESPONSE AND POLLING IS CLOSED!!!"</span>)
 </pre>
 </body>
 </html>
