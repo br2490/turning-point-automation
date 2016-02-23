@@ -1,62 +1,56 @@
-Debug.on(3)
-## configure our patterns.
-# STEP 0, we need to open polling.
-poll_closed_no_response_old = Pattern("poll_closed_no_response_old.png").exact()
-# STEP 2, we need to wait for a response.
-poll_open_no_response_old = Pattern("poll_open_no_response_old.png").exact()
-# STEP 3, we have a response, close polling.
-poll_opened_has_response_old = Pattern("poll_opened_has_response_old.png").exact()
-# STEP 4 -> 1, saved response.
-poll_closed_has_response_old = Pattern("poll_closed_has_response_old.png").exact()
-# ZERO
-no_response = Pattern("ZERO.png").exact()
-# ONE
-has_response = Pattern("ONE.png").exact()
+### Code for the automation of TurningPoint in an experimental setting.
+### License: GNU General Public License v3 
+### Developed at Barnard College, NY. 2016. 
+### Maintainer: Benjamin Rosner, brosner@barnard.edu 
 
-## This hotkey will both OPEN and CLOSE polling on Mac OSx.
-def turning_point_hotkey():
+## Debuging Options
+# Debug.on(3) # Comment this line to disable debug.
+
+## Configure our patterns.
+poll_closed_no_response = Pattern("poll_closed_no_response_old.png").exact()
+poll_open = Pattern("poll_open.png").exact()
+poll_closed = Pattern("poll_closed.png").exact()
+no_response = Pattern("ZERO.png").exact() # The number 0
+has_response = Pattern("ONE.png").exact() # The number 1
+
+## Functions
+# This hotkey will both OPEN and CLOSE TurningPoint polling on Mac OSx.
+def toggle_polling():
     type("9", Key.ALT + Key.CMD)
 
-## This will move PowerPoint forward one slide and trigger polling to reopen.
-def next_slide_and_poll():
-    print("next slide")
+# This will move PowerPoint forward one slide and trigger polling to reopen.
+def next_slide():
+    switchApp("PowerPoint")
+    type(Key.SPACE)
+    toggle_polling()
+    sleep(1) # TurningPoint is sluggish...
 
-## First let's find the TurningPoint polling toolbar. This MATCH is saved as our search region.
-toolbar_region = wait(poll_closed_no_response_old, FOREVER)
+# This is called when we have a response. 
+def haveResponse():
+    sleep(1) # We give the participant ONE second to modify their response.
+    toggle_polling() # now close polling...
 
-## Now we'll build a new region based on our first region that captures ONLY the number of responses (0 or 1)
-newX = toolbar_region.getX() + 395 # since we know how big the region is we add a fixed number of pixels to X
-newY = toolbar_region.getY() + 24 # since we know how big the region is we add a fixed number of pixels to Y
-h_and_w = 14 # the hieght and width of our textual element is 14px...
-text_region = setRect(newX, newY, h_and_w, h_and_w) ## This region is our end result.
+## Find the TurningPoint polling toolbar. This MATCH is saved as our search region to limit what we're observing.
+toolbar_region = wait(poll_closed_no_response, FOREVER)
+setWaitScanRate(20) # Increase the speed at which we observe the region for changes. Scan 50 TPS.
 
-# Increase the speed at which we poll the region for changes. Where scanRate(n) is equal to queries per second.
-setWaitScanRate(20) # scan 50 TPS
+## START OF THE EXPERIMENT'S CODE
+# This is is the first event and BEGINS polling on the first slide.
+# Everything after this point is automatic and the experiment runs inself.
+# Terminate execution by pressing COMMAND + SHIFT + C
+if toolbar_region.exists(poll_closed_no_response, 10):
+     print('Starting...')
 
-# DEBUG COMMANDS
-toolbar_region.highlight(2)
-text_region.highlight(2)
-Screen(0).highlight(2)
-#print(text_region.text())
-
-## Now that we've set all of our regions and "know" where to scan the screen, let's begin the experiment, shall we?!
-## Open polling and wait for participant.
-# turning_point_hotkey()
-
-# if exists(poll_closed_no_response_old, 10):
-#     turning_point_hotkey()
-#     wait(1)
-
-# This is a SANITY check ~ we should se that polling is opened and waiting for input.
-toolbar_region.wait(poll_open_no_response_old, 10)
-print("Waiting for input...")
-
-# The participant has responded, wait, then close polling.
-text_region.wait(has_response, 10)
-print("Participant has 1 second to change their answer")
-sleep(1) # give the participant opportunity to change their response.
-print("Participant no longer has time to change their answer.")
-#turning_point_hotkey()
-
-#if toolbar_region.wait(poll_closed_has_response_zoom):
-#    print("WE HAVE A RESPONSE AND POLLING IS CLOSED!!!")
+## Main loop will open and close polling until terminated.
+while True:
+    # The logical loop.
+    while True:
+        if toolbar_region.exists(poll_closed,0): 
+            toggle_polling() # Try to open polling
+            sleep(1)
+            break
+        else:
+        	# We have a response if the following event triggers...
+            toolbar_region.wait(has_response, FOREVER)
+            haveResponse()
+            next_slide()

@@ -1,0 +1,150 @@
+
+<html>
+   <head>
+      <style type="text/css">
+         .sikuli-code {
+            font-size: 20px;
+            font-family: "Osaka-mono", Monospace;
+            line-height: 1.5em;
+            display:table-cell;
+            white-space: pre-wrap;       /* css-3 */
+            white-space: -moz-pre-wrap !important;  /* Mozilla, since 1999 */
+            white-space: -pre-wrap;      /* Opera 4-6 */
+            white-space: -o-pre-wrap;    /* Opera 7 */
+            word-wrap: break-word;       /* Internet Explorer 5.5+ */
+            width: 99%;   /* remove horizontal scroll-bar when viewing in IE7 */
+         }
+         .sikuli-code img {
+            vertical-align: middle;
+            margin: 2px;
+            border: 1px solid #ccc;
+            padding: 2px;
+            -moz-border-radius: 5px;
+            -webkit-border-radius: 5px;
+            -moz-box-shadow: 1px 1px 1px gray;
+            -webkit-box-shadow: 1px 1px 2px gray;
+         }
+         .kw {
+            color: blue;
+         }
+         .skw {
+            color: rgb(63, 127, 127);
+         }
+
+         .str {
+            color: rgb(128, 0, 0);
+         }
+
+         .dig {
+            color: rgb(128, 64, 0);
+         }
+
+         .cmt {
+            color: rgb(200, 0, 200);
+         }
+
+         h2 {
+            display: inline;
+            font-weight: normal;
+         }
+
+         .info {
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+            margin-bottom: 20px;
+            display: none;
+         }
+
+         a {
+            color: #9D2900;
+         }
+
+         body {
+            font-family: "Trebuchet MS", Arial, Sans-Serif;
+         }
+
+      </style>
+   </head>
+<body>
+<div class="info">
+<h2>TurningPointAutomation.sikuli</h2> <a href="TurningPointAutomation.zip">(Download this script)</a>
+</div>
+<pre class="sikuli-code">
+Debug.on(<span class="dig">3</span>)
+<span class="cmt">## configure our patterns.</span>
+<span class="cmt"># STEP 0, we need to open polling.</span>
+poll_closed_no_response_old = Pattern(<img src="poll_closed_no_response_old.png" />).exact()
+<span class="cmt"># STEP 2, we need to wait for a response.</span>
+poll_open_no_response_old = Pattern(<img src="poll_open_no_response_old.png" />).exact()
+<span class="cmt"># STEP 3, we have a response, close polling.</span>
+poll_opened_has_response_old = Pattern(<img src="poll_opened_has_response_old.png" />).exact()
+<span class="cmt"># STEP 4 -&gt; 1, saved response.</span>
+poll_closed_has_response_old = Pattern(<img src="poll_closed_has_response_old.png" />).exact()
+<span class="cmt"># ZERO</span>
+no_response = Pattern(<img src="ZERO.png" />).exact()
+<span class="cmt"># ONE</span>
+has_response = Pattern(<img src="ONE.png" />).exact()
+
+<span class="cmt">## This hotkey will both OPEN and CLOSE polling on Mac OSx.</span>
+<span class="kw">def</span> turning_point_hotkey():
+    <span class="skw">type</span>(<span class="str">"9"</span>, Key.ALT + Key.CMD)
+
+<span class="cmt">## This will move PowerPoint forward one slide and trigger polling to reopen.</span>
+<span class="kw">def</span> next_slide_and_poll():
+    <span class="kw">print</span>(<span class="str">"next slide"</span>)
+
+<span class="cmt">## First let's find the TurningPoint polling toolbar. This MATCH is saved as our search region.</span>
+toolbar_region = <span class="skw">wait</span>(poll_closed_no_response_old, FOREVER)
+<span class="cmt">## Now we'll build a new region based on our first region that captures ONLY the number of responses (0 or 1)</span>
+newX = toolbar_region.getX() + <span class="dig">395</span> <span class="cmt"># since we know how big the region is we add a fixed number of pixels to X</span>
+newY = toolbar_region.getY() + <span class="dig">24</span> <span class="cmt"># since we know how big the region is we add a fixed number of pixels to Y</span>
+h_and_w = <span class="dig">14</span> <span class="cmt"># the hieght and width of our textual element is 14px...</span>
+text_region = Region(newX, newY, h_and_w, h_and_w)
+
+<span class="cmt"># Increase the speed at which we poll the region for changes. Where scanRate(n) is equal to queries per second.</span>
+<span class="cmt"># setWaitScanRate(20) # scan 50 TPS</span>
+
+<span class="cmt">## DEBUG COMMANDS</span>
+<span class="cmt"># print(toolbar_region)</span>
+<span class="cmt"># toolbar_region.highlight(2)</span>
+<span class="cmt"># print(text_region)</span>
+<span class="cmt"># text_region.highlight(2)</span>
+
+<span class="cmt">## Functions</span>
+<span class="kw">def</span> haveResponse(event):
+    <span class="kw">print</span>(<span class="str">"We have a response."</span>)
+
+<span class="kw">def</span> noResponse(event):
+    <span class="kw">print</span>(<span class="str">"Waiting for input!"</span>)
+
+<span class="cmt">## Now that we've set all of our regions and "know" where to scan the screen, let's begin the experiment, shall we?!</span>
+<span class="cmt">## Open polling and wait for participant.</span>
+<span class="cmt"># turning_point_hotkey()</span>
+
+
+<span class="kw">if</span> toolbar_region.exists(poll_closed_no_response_old, <span class="dig">10</span>):
+     turning_point_hotkey()
+
+<span class="cmt"># This is a SANITY check ~ we should se that polling is opened and waiting for input.</span>
+toolbar_region.<span class="skw">wait</span>(poll_open_no_response_old, FOREVER)
+<span class="kw">print</span>(<span class="str">"Waiting for input..."</span>)
+
+text_region.onAppear(has_response, haveResponse)
+text_region.onAppear(no_response, noResponse)
+<span class="cmt"># text_region.onVanish(no_response, haveResponse)</span>
+
+text_region.observe(FOREVER)
+
+<span class="cmt"># The participant has responded, wait, then close polling.</span>
+<span class="cmt">#if text_region.exists(has_response, FOREVER):</span>
+<span class="cmt">#    print("Participant has 1 second to change their answer")</span>
+<span class="cmt">#    sleep(1) # give the participant opportunity to change their response.</span>
+<span class="cmt">#    print("Participant no longer has time to change their answer.")</span>
+<span class="cmt">#    turning_point_hotkey()</span>
+
+<span class="cmt">#if toolbar_region.wait(poll_closed_has_response_zoom):</span>
+<span class="cmt">#    print("WE HAVE A RESPONSE AND POLLING IS CLOSED!!!")</span>
+
+</pre>
+</body>
+</html>

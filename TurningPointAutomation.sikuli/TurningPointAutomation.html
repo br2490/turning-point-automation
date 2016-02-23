@@ -70,69 +70,62 @@
 <h2>TurningPointAutomation.sikuli</h2> <a href="TurningPointAutomation.zip">(Download this script)</a>
 </div>
 <pre class="sikuli-code">
-Debug.on(<span class="dig">3</span>)
-<span class="cmt">## configure our patterns.</span>
-<span class="cmt"># STEP 0, we need to open polling.</span>
-poll_closed_no_response_old = Pattern(<img src="poll_closed_no_response_old.png" />).exact()
-<span class="cmt"># STEP 2, we need to wait for a response.</span>
-poll_open_no_response_old = Pattern(<img src="poll_open_no_response_old.png" />).exact()
-<span class="cmt"># STEP 3, we have a response, close polling.</span>
-poll_opened_has_response_old = Pattern(<img src="poll_opened_has_response_old.png" />).exact()
-<span class="cmt"># STEP 4 -&gt; 1, saved response.</span>
-poll_closed_has_response_old = Pattern(<img src="poll_closed_has_response_old.png" />).exact()
-<span class="cmt"># ZERO</span>
-no_response = Pattern(<img src="ZERO.png" />).exact()
-<span class="cmt"># ONE</span>
-has_response = Pattern(<img src="ONE.png" />).exact()
+<span class="cmt">### Code for the automation of TurningPoint in an experimental setting.</span>
+<span class="cmt">### License: GNU General Public License v3 </span>
+<span class="cmt">### Developed at Barnard College, NY. 2016. </span>
+<span class="cmt">### Maintainer: Benjamin Rosner, brosner@barnard.edu </span>
 
-<span class="cmt">## This hotkey will both OPEN and CLOSE polling on Mac OSx.</span>
-<span class="kw">def</span> turning_point_hotkey():
+<span class="cmt">## Debuging Options</span>
+<span class="cmt"># Debug.on(3) # Comment this line to disable debug.</span>
+
+<span class="cmt">## Configure our patterns.</span>
+poll_closed_no_response = Pattern(<img src="poll_closed_no_response_old.png" />).exact()
+poll_open = Pattern(<img src="poll_open.png" />).exact()
+poll_closed = Pattern(<img src="poll_closed.png" />).exact()
+no_response = Pattern(<img src="ZERO.png" />).exact() <span class="cmt"># The number 0</span>
+has_response = Pattern(<img src="ONE.png" />).exact() <span class="cmt"># The number 1</span>
+
+<span class="cmt">## Functions</span>
+<span class="cmt"># This hotkey will both OPEN and CLOSE TurningPoint polling on Mac OSx.</span>
+<span class="kw">def</span> toggle_polling():
     <span class="skw">type</span>(<span class="str">"9"</span>, Key.ALT + Key.CMD)
 
-<span class="cmt">## This will move PowerPoint forward one slide and trigger polling to reopen.</span>
-<span class="kw">def</span> next_slide_and_poll():
-    <span class="kw">print</span>(<span class="str">"next slide"</span>)
+<span class="cmt"># This will move PowerPoint forward one slide and trigger polling to reopen.</span>
+<span class="kw">def</span> next_slide():
+    switchApp(<span class="str">"PowerPoint"</span>)
+    <span class="skw">type</span>(Key.SPACE)
+    toggle_polling()
+    <span class="skw">sleep</span>(<span class="dig">1</span>) <span class="cmt"># TurningPoint is sluggish...</span>
 
-<span class="cmt">## First let's find the TurningPoint polling toolbar. This MATCH is saved as our search region.</span>
-toolbar_region = <span class="skw">wait</span>(poll_closed_no_response_old, FOREVER)
+<span class="cmt"># This is called when we have a response. </span>
+<span class="kw">def</span> haveResponse():
+    <span class="skw">sleep</span>(<span class="dig">1</span>) <span class="cmt"># We give the participant ONE second to modify their response.</span>
+    toggle_polling() <span class="cmt"># now close polling...</span>
 
-<span class="cmt">## Now we'll build a new region based on our first region that captures ONLY the number of responses (0 or 1)</span>
-newX = toolbar_region.getX() + <span class="dig">395</span> <span class="cmt"># since we know how big the region is we add a fixed number of pixels to X</span>
-newY = toolbar_region.getY() + <span class="dig">24</span> <span class="cmt"># since we know how big the region is we add a fixed number of pixels to Y</span>
-h_and_w = <span class="dig">14</span> <span class="cmt"># the hieght and width of our textual element is 14px...</span>
-text_region = setRect(newX, newY, h_and_w, h_and_w) <span class="cmt">## This region is our end result.</span>
+<span class="cmt">## Find the TurningPoint polling toolbar. This MATCH is saved as our search region to limit what we're observing.</span>
+toolbar_region = <span class="skw">wait</span>(poll_closed_no_response, FOREVER)
+setWaitScanRate(<span class="dig">20</span>) <span class="cmt"># Increase the speed at which we observe the region for changes. Scan 50 TPS.</span>
 
-<span class="cmt"># Increase the speed at which we poll the region for changes. Where scanRate(n) is equal to queries per second.</span>
-setWaitScanRate(<span class="dig">20</span>) <span class="cmt"># scan 50 TPS</span>
+<span class="cmt">## START OF THE EXPERIMENT'S CODE</span>
+<span class="cmt"># This is is the first event and BEGINS polling on the first slide.</span>
+<span class="cmt"># Everything after this point is automatic and the experiment runs inself.</span>
+<span class="cmt"># Terminate execution by pressing COMMAND + SHIFT + C</span>
+<span class="kw">if</span> toolbar_region.exists(poll_closed_no_response, <span class="dig">10</span>):
+     <span class="kw">print</span>(<span class="str">'Starting...'</span>)
 
-<span class="cmt"># DEBUG COMMANDS</span>
-toolbar_region.highlight(<span class="dig">2</span>)
-text_region.highlight(<span class="dig">2</span>)
-Screen(<span class="dig">0</span>).highlight(<span class="dig">2</span>)
-<span class="cmt">#print(text_region.text())</span>
-
-<span class="cmt">## Now that we've set all of our regions and "know" where to scan the screen, let's begin the experiment, shall we?!</span>
-<span class="cmt">## Open polling and wait for participant.</span>
-<span class="cmt"># turning_point_hotkey()</span>
-
-<span class="cmt"># if exists(poll_closed_no_response_old, 10):</span>
-<span class="cmt">#     turning_point_hotkey()</span>
-<span class="cmt">#     wait(1)</span>
-
-<span class="cmt"># This is a SANITY check ~ we should se that polling is opened and waiting for input.</span>
-toolbar_region.<span class="skw">wait</span>(poll_open_no_response_old, <span class="dig">10</span>)
-<span class="kw">print</span>(<span class="str">"Waiting for input..."</span>)
-
-<span class="cmt"># The participant has responded, wait, then close polling.</span>
-text_region.<span class="skw">wait</span>(has_response, <span class="dig">10</span>)
-<span class="kw">print</span>(<span class="str">"Participant has 1 second to change their answer"</span>)
-<span class="skw">sleep</span>(<span class="dig">1</span>) <span class="cmt"># give the participant opportunity to change their response.</span>
-<span class="kw">print</span>(<span class="str">"Participant no longer has time to change their answer."</span>)
-<span class="cmt">#turning_point_hotkey()</span>
-
-<span class="cmt">#if toolbar_region.wait(poll_closed_has_response_zoom):</span>
-<span class="cmt">#    print("WE HAVE A RESPONSE AND POLLING IS CLOSED!!!")</span>
-
+<span class="cmt">## Main loop will open and close polling until terminated.</span>
+<span class="kw">while</span> True:
+    <span class="cmt"># The logical loop.</span>
+    <span class="kw">while</span> True:
+        <span class="kw">if</span> toolbar_region.exists(poll_closed,<span class="dig">0</span>):
+            toggle_polling() <span class="cmt"># Try to open polling</span>
+            <span class="skw">sleep</span>(<span class="dig">1</span>)
+            <span class="kw">break</span>
+        <span class="kw">else</span>:
+                <span class="cmt"># We have a response if the following event triggers...</span>
+            toolbar_region.<span class="skw">wait</span>(has_response, FOREVER)
+            haveResponse()
+            next_slide()
 </pre>
 </body>
 </html>
