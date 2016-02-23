@@ -94,21 +94,22 @@ has_response = Pattern(<img src="ONE.png" />).exact()
     <span class="kw">print</span>(<span class="str">"next slide"</span>)
 
 <span class="cmt">## First let's find the TurningPoint polling toolbar. This MATCH is saved as our search region.</span>
-region = <span class="skw">wait</span>(poll_closed_no_response_old, FOREVER)
+toolbar_region = <span class="skw">wait</span>(poll_closed_no_response_old, FOREVER)
 
 <span class="cmt">## Now we'll build a new region based on our first region that captures ONLY the number of responses (0 or 1)</span>
-newX = region.getX() + <span class="dig">395</span> <span class="cmt"># since we know how big the region is we add a fixed number of pixels to X</span>
-newY = region.getY() + <span class="dig">24</span> <span class="cmt"># since we know how big the region is we add a fixed number of pixels to Y</span>
+newX = toolbar_region.getX() + <span class="dig">395</span> <span class="cmt"># since we know how big the region is we add a fixed number of pixels to X</span>
+newY = toolbar_region.getY() + <span class="dig">24</span> <span class="cmt"># since we know how big the region is we add a fixed number of pixels to Y</span>
 h_and_w = <span class="dig">14</span> <span class="cmt"># the hieght and width of our textual element is 14px...</span>
-textRegion = setRect(newX, newY, h_and_w, h_and_w) <span class="cmt">## This region is our end result.</span>
+text_region = setRect(newX, newY, h_and_w, h_and_w) <span class="cmt">## This region is our end result.</span>
 
 <span class="cmt"># Increase the speed at which we poll the region for changes. Where scanRate(n) is equal to queries per second.</span>
-setWaitScanRate(<span class="dig">20</span>)
+setWaitScanRate(<span class="dig">20</span>) <span class="cmt"># scan 50 TPS</span>
 
 <span class="cmt"># DEBUG COMMANDS</span>
-region.highlight(<span class="dig">2</span>)
-textRegion.highlight(<span class="dig">2</span>)
-<span class="cmt">#print(textRegion.text())</span>
+toolbar_region.highlight(<span class="dig">2</span>)
+text_region.highlight(<span class="dig">2</span>)
+Screen(<span class="dig">0</span>).highlight(<span class="dig">2</span>)
+<span class="cmt">#print(text_region.text())</span>
 
 <span class="cmt">## Now that we've set all of our regions and "know" where to scan the screen, let's begin the experiment, shall we?!</span>
 <span class="cmt">## Open polling and wait for participant.</span>
@@ -119,17 +120,17 @@ textRegion.highlight(<span class="dig">2</span>)
 <span class="cmt">#     wait(1)</span>
 
 <span class="cmt"># This is a SANITY check ~ we should se that polling is opened and waiting for input.</span>
-region.<span class="skw">wait</span>(poll_open_no_response_old, <span class="dig">10</span>)
+toolbar_region.<span class="skw">wait</span>(poll_open_no_response_old, <span class="dig">10</span>)
 <span class="kw">print</span>(<span class="str">"Waiting for input..."</span>)
 
 <span class="cmt"># The participant has responded, wait, then close polling.</span>
-textRegion.<span class="skw">wait</span>(has_response, FOREVER)
+text_region.<span class="skw">wait</span>(has_response, <span class="dig">10</span>)
 <span class="kw">print</span>(<span class="str">"Participant has 1 second to change their answer"</span>)
 <span class="skw">sleep</span>(<span class="dig">1</span>) <span class="cmt"># give the participant opportunity to change their response.</span>
 <span class="kw">print</span>(<span class="str">"Participant no longer has time to change their answer."</span>)
 <span class="cmt">#turning_point_hotkey()</span>
 
-<span class="cmt">#if region.wait(poll_closed_has_response_zoom):</span>
+<span class="cmt">#if toolbar_region.wait(poll_closed_has_response_zoom):</span>
 <span class="cmt">#    print("WE HAVE A RESPONSE AND POLLING IS CLOSED!!!")</span>
 
 </pre>

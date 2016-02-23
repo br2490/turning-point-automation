@@ -48,15 +48,15 @@ Screen(0).highlight(2)
 #     wait(1)
 
 # This is a SANITY check ~ we should se that polling is opened and waiting for input.
-region.wait(poll_open_no_response_old, 10)
+toolbar_region.wait(poll_open_no_response_old, 10)
 print("Waiting for input...")
 
 # The participant has responded, wait, then close polling.
-textRegion.wait(has_response, FOREVER)
+text_region.wait(has_response, 10)
 print("Participant has 1 second to change their answer")
 sleep(1) # give the participant opportunity to change their response.
 print("Participant no longer has time to change their answer.")
 #turning_point_hotkey()
 
-#if region.wait(poll_closed_has_response_zoom):
+#if toolbar_region.wait(poll_closed_has_response_zoom):
 #    print("WE HAVE A RESPONSE AND POLLING IS CLOSED!!!")
