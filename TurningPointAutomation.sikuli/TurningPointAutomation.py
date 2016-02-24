@@ -20,7 +20,7 @@ def toggle_polling():
 
 # This will move PowerPoint forward one slide and trigger polling to reopen.
 def next_slide():
-    switchApp("PowerPoint")
+    App.focus("Microsoft PowerPoint")
     type(Key.SPACE)
     toggle_polling()
     sleep(1) # TurningPoint is sluggish...
@@ -50,7 +50,7 @@ while True:
             sleep(1)
             break
         else:
-        	# We have a response if the following event triggers...
+            # We have a response if the following event triggers...
             toolbar_region.wait(has_response, FOREVER)
             haveResponse()
             next_slide()
